@@ -8,7 +8,7 @@ import re
 
 from ...utils import shell
 from ..base import State
-from .dirs import Dir
+from .dir import Dir
 
 
 class Repository(object):
