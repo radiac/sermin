@@ -84,7 +84,8 @@ modify the system, you can only use ``detox`` in ``safe`` mode.
 Running full tests with Vagrant
 -------------------------------
 
-First `install vagrant <https://www.vagrantup.com/docs/installation/>`_.
+First install vagrant (eg ``apt install virtualbox vagrant``, or follow the
+`official instructions <https://www.vagrantup.com/docs/installation/>`_).
 
 Provision and start your Vagrant machine with::
 
