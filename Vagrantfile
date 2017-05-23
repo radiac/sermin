@@ -11,9 +11,8 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder ".", "/home/ubuntu/source"
 
   config.vm.provision "shell", inline: <<-SHELL
-    # ubuntu/xenial64 doesn't include Python
     sudo apt-get update
-    sudo apt-get --yes install python-minimal python-setuptools python-pip
+    sudo apt-get --yes install python-minimal python-setuptools python-pip git
     pip install --upgrade pip
     pip install virtualenv
     if [ ! -d /home/ubuntu/venv ]; then
@@ -21,6 +20,8 @@ Vagrant.configure(2) do |config|
     fi
     source /home/ubuntu/venv/bin/activate
     pip install -e /home/ubuntu/source[dev]
+    sudo git config --system user.email "test@example.com"
+    sudo git config --system user.name "Test User"
   SHELL
 
 end
