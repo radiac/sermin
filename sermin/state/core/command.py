@@ -23,7 +23,7 @@ class Command(State):
     def apply(self):
         if self.cwd:
             self.report.info('Changing dir and running command')
-            shell('cd {} && {}'.format(self.cwd, self.command))
+            shell(self.command, cd=self.cwd)
         else:
             self.report.info('Running command')
             shell(self.command)

@@ -32,17 +32,19 @@ class Repository(object):
         return self.path
 
     def git(self, cmd):
-        return shell('cd {path} && git {cmd}'.format(path=self.path, cmd=cmd))
+        return shell('git {cmd}'.format(cmd=cmd), cd=self.path)
 
     def clone(self):
         """
         Clone the specified repository
         """
-        response = shell('cd {parent} && git clone {remote} {dir}'.format(
-            parent=os.path.dirname(self.path),
-            remote=self.remote,
-            dir=os.path.basename(self.path),
-        ))
+        response = shell(
+            'git clone {remote} {dir}'.format(
+                remote=self.remote,
+                dir=os.path.basename(self.path),
+            ),
+            cd=os.path.dirname(self.path),
+        )
         if 'done.' not in response:
             raise ValueError('Unexpected response from git clone: {}'.format(
                 response,
@@ -63,10 +65,10 @@ class Repository(object):
                 'Repository checkout requires a commit, tag or branch',
             )
 
-        return shell('cd {path} && git checkout {commit_id}'.format(
-            path=self.path,
-            commit_id=commit_id,
-        ))
+        return shell(
+            'git checkout {commit_id}'.format(commit_id=commit_id),
+            cd=self.path,
+        )
 
     def fetch(self):
         """
@@ -220,6 +222,9 @@ class Git(State):
         self.children.add(
             Dir(os.path.dirname(self.path))
         )
+
+    def __str__(self):
+        return self.path
 
     def check(self):
         # Path exists as a repo?

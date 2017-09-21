@@ -24,30 +24,25 @@ class GitTest(FullTestCase):
 
     def mk_repo(self, path):
         shell('mkdir {}'.format(path))
-        shell('cd {} && git init'.format(path))
+        shell('git init', cd=path)
         self.mk_commit(path, 'rev1')
         self.mk_commit(path, 'rev2')
         self.mk_commit(path, 'rev3')
 
     def mk_commit(self, path, rev):
-        shell((
-            'cd {path} && '
-            'touch {rev} &&'
-            'git add . && '
-            'git commit -m "{rev}"'
-        ).format(path=path, rev=rev))
+        shell('touch {}'.format(rev), cd=path)
+        shell('git add . ', cd=path)
+        shell('git commit -m "{}"'.format(rev), cd=path)
 
     def get_commits(self, path):
         commits = {}
-        for line in shell(
-            'cd {} && git log --pretty=oneline'.format(path)
-        ).splitlines():
+        for line in shell('git log --pretty=oneline', cd=path).splitlines():
             commit, label = line.split(' ')
             commits[label] = commit
         return commits
 
     def get_current_commit(self, path):
-        return shell('cd {} && git rev-parse --verify HEAD'.format(path))
+        return shell('git rev-parse --verify HEAD', cd=path)
 
     def test_mk_repo(self):
         # Check repo is made as expected
@@ -111,10 +106,10 @@ class GitTest(FullTestCase):
     def test_specific_tag(self):
         self.mk_repo(self.source)
         source_commits = self.get_commits(self.source)
-        shell('cd {path} && git tag -a tag1 {commit} -m "tag 1"'.format(
-            path=self.source,
-            commit=source_commits['rev2'],
-        ))
+        shell(
+            'git tag -a tag1 {} -m "tag 1"'.format(source_commits['rev2']),
+            cd=self.source,
+        )
         Git(self.target, remote=self.source, tag="tag1")
         self.registry_run()
 
@@ -131,9 +126,9 @@ class GitTest(FullTestCase):
     def test_specific_branch(self):
         # Create a branch and check back to master to ensure it's not a copy
         self.mk_repo(self.source)
-        shell('cd {path} && git checkout -b test'.format(path=self.source))
+        shell('git checkout -b test', cd=self.source)
         self.mk_commit(self.source, 'rev4')
-        shell('cd {path} && git checkout master'.format(path=self.source))
+        shell('git checkout master', cd=self.source)
         Git(self.target, remote=self.source, branch='test')
         self.registry_run()
 
