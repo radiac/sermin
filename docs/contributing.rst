@@ -145,6 +145,7 @@ Roadmap
 * ``Git`` state logging and tests
 * ``User`` and ``Group`` states
 * Ownership and permission management for ``Dir`` and ``File`` states
+* Address ``# TODO`` notes in code
 * Host arguments for deploying to remote hosts
 * Complete planned command line options
 
