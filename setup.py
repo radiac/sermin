@@ -31,8 +31,12 @@ class VagrantCommand(distutils.cmd.Command):
         subprocess.call(command)
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+def read(filename):
+    return open(os.path.join(os.path.dirname(__file__), filename)).read()
+
+
+def read_lines(filename)
+    return [s for s in read(filename).splitlines() if s]
 
 
 setup(
@@ -54,22 +58,11 @@ setup(
     ],
 
     zip_safe=True,
-    install_requires=[
-        'future',
-        'jinja2',
-        'psutil',
-        'six',
-        'configparser',
-    ],
+    install_requires=read_lines('requirements.txt'),
     packages=find_packages(),
     include_package_data=True,
     extras_require={
-        'dev':  [
-            'nose',
-            'flake8',
-            'sphinx',
-            'sphinx_rtd_theme',
-        ],
+        'dev': read_lines('requirements-dev.txt'),
     },
     test_suite='nose.collector',
     cmdclass={

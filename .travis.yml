@@ -1,0 +1,9 @@
+language:
+  - python
+install:
+  - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
+env:
+  - SERMIN_TEST_MODE=full
+script:
+  - flake8 && python setup.py nosetests -s -vv
