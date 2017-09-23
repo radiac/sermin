@@ -21,14 +21,12 @@ class Group(State):
         self.name = name
         self.state = state
         self.gid = gid
-        print('HELLO')
-        self.report.debug('HELLO' + name)
 
     def __str__(self):
-        print('str eval' + self.name)
-        if not self.gid:
-            return self.get_gid()
-        return self.gid
+        return '{name} ({gid})'.format(
+            name=self.name,
+            gid=self.gid or self.get_gid() or '-',
+        )
 
     def get_gid(self):
         ent = shell('getent group {}'.format(self.name), expect_errors=True)
@@ -37,7 +35,6 @@ class Group(State):
         return ent.split(':')[-2]
 
     def check(self):
-        print('CHECKING')
         self.report.debug('checking')
         gid = self.get_gid()
         self.report.debug('gid {}'.format(gid))
