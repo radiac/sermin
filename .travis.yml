@@ -4,6 +4,7 @@ install:
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
 env:
-  - SERMIN_TEST_MODE=full
+  global:
+    - SERMIN_TEST_MODE=full
 script:
-  - flake8 && python setup.py nosetests -s -vv
+  - flake8 && sudo python setup.py nosetests -s -vv
