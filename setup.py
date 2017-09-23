@@ -35,7 +35,7 @@ def read(filename):
     return open(os.path.join(os.path.dirname(__file__), filename)).read()
 
 
-def read_lines(filename)
+def read_lines(filename):
     return [s for s in read(filename).splitlines() if s]
 
 
