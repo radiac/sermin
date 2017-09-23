@@ -3,8 +3,5 @@ language:
 install:
   - pip install -r requirements.txt
   - pip install -r requirements-dev.txt
-env:
-  global:
-    - SERMIN_TEST_MODE=full
 script:
-  - flake8 && sudo /home/travis/virtualenv/python2.7/bin/python setup.py nosetests -s -vv
+  - flake8 && sudo SERMIN_TEST_MODE=full /home/travis/virtualenv/python2.7/bin/python setup.py nosetests -s -vv
