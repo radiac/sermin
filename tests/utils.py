@@ -68,3 +68,9 @@ def with_settings(**values):
             return returned
         return test_inner
     return test_outer
+
+
+class Data(object):
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)

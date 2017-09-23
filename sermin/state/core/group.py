@@ -32,7 +32,7 @@ class Group(State):
         ent = shell('getent group {}'.format(self.name), expect_errors=True)
         if not ent:
             return None
-        return ent.split(':')[-2]
+        return int(ent.split(':')[-2])
 
     def check(self):
         self.report.debug('checking')

@@ -30,7 +30,7 @@ class ShellOutput(str):
         return self
 
 
-def shell(cmd, cd=None, expect_errors=False):
+def shell(cmd, cd=None, stdin=None, expect_errors=False):
     """
     Perform a shell command
 
@@ -45,6 +45,7 @@ def shell(cmd, cd=None, expect_errors=False):
     """
     cmd_display = cmd
     if not isinstance(cmd, string_types):
+        cmd = map(str, cmd)
         cmd_display = ' '.join(cmd)
 
     if isinstance(cmd, string_types):
@@ -56,7 +57,9 @@ def shell(cmd, cd=None, expect_errors=False):
         os.chdir(cd)
 
     report.info('$ {}'.format(cmd_display), label='shell')
-    process = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE)
+    process = Popen(cmd, shell=False, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+    if stdin:
+        process.stdin.write(stdin)
     stdout, stderr = process.communicate()
 
     out = ShellOutput(stdout, stderr)

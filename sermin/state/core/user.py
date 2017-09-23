@@ -4,10 +4,12 @@ User management
 from future.utils import python_2_unicode_compatible
 import crypt
 import pwd
+import random
 
 from ...constants import Undefined
 from ...utils import shell
 from ..base import State
+from .group import Group
 
 
 class UserData(object):
@@ -32,11 +34,11 @@ class User(State):
     ABSENT = 'absent'
 
     default_shell = '/bin/bash'
-    default_home = '/home/{username}',
+    default_home = '/home/{name}'
 
     def __init__(
         self,
-        username,
+        name,
         state=EXISTS,
         password=None,
         shell=Undefined,
@@ -50,7 +52,7 @@ class User(State):
         Define a user state
 
         Arguments:
-            username    System name of user
+            name        System name of user
             state       The desired user state; one of:
                             User.EXISTS
                                 The user will be created if it does not exist.
@@ -63,7 +65,7 @@ class User(State):
                         Default: User.default_shell
             home        Home path for user.
                         Set to `None` for no home directory.
-                        Can contain `format` reference `{username}`.
+                        Can contain `format` reference `{name}`.
                         Default: User.default_home
             uid         Optional: numeric user ID to use.
                         Must not already be in use on the system.
@@ -73,13 +75,13 @@ class User(State):
                         Can either be a gid or a Group state instance.
                         If not set, will allow `useradd` to fall back to its
                         default of creating a group with the same name as the
-                        username.
+                        username User.name.
             comment     Optional: text string to describe the login (eg user's
                         full name)
         """
         # TODO: Add extra groups
         super(User, self).__init__(**kwargs)
-        self.username = username
+        self.name = name
         self.state = state
         self.password = password
 
@@ -102,16 +104,27 @@ class User(State):
         Returns a UserData object, or None if the user is not found
         """
         try:
-            data = pwd.getpwnam(self.username)
+            data = pwd.getpwnam(self.name)
         except KeyError:
             return None
         return UserData(
             shell=data.pw_shell,
             home=data.pw_dir,
-            uid=data.pw_uid,
-            gid=data.pw_gid,
+            uid=int(data.pw_uid),
+            gid=int(data.pw_gid),
             comment=data.pw_gecos,
         )
+
+    def __str__(self):
+        uid = self.uid
+        if not uid:
+            status = self.get_user_status()
+            if status:
+                uid = status.uid
+            else:
+                uid = '-'
+
+        return '{name} ({uid})'.format(name=self.name, uid=uid)
 
     def check(self):
         user = self.get_user_status()
@@ -136,20 +149,24 @@ class User(State):
         if user:
             if self.state == self.ABSENT:
                 self.report.info('Removing')
-                shell('userdel {}'.format(self.username))
+                shell('userdel {}'.format(self.name))
         else:
             if self.state == self.EXISTS:
                 self.report.info('Creating')
                 shell(self.get_add_command())
 
-                # TODO: Check if other attributes need updating
+                # TODO: Check if other attributes need updating (usermod)
 
     def get_add_command(self):
         cmd = ['useradd']
 
         if self.password:
+            ALPHABET = ''.join([
+                chr(c) for c in range(48, 58) + range(65, 91) + range(97, 123)
+            ])
+            salt = ''.join(random.choice(ALPHABET) for i in range(16))
             cmd.extend([
-                '-p', crypt.crypt(self.password, crypt.mksalt())
+                '-p', crypt.crypt(self.password, salt)
             ])
 
         if self.shell:
@@ -158,7 +175,7 @@ class User(State):
         if self.home:
             cmd.extend([
                 '-d',
-                self.home.format(username=self.username),
+                self.home.format(name=self.name),
                 '-m',  # create it if it doesn't exist
             ])
 
@@ -166,10 +183,18 @@ class User(State):
             cmd.extend(['-u', self.uid])
 
         if self.group:
-            cmd.extend(['-g', self.group])
+            if isinstance(self.group, Group):
+                gid = self.group.get_gid()
+                if not gid:
+                    raise ValueError(
+                        "Cannot add a user to a group which doesn't exist"
+                    )
+            else:
+                gid = self.group
+            cmd.extend(['-g', gid])
 
         if self.comment:
             cmd.extend(['-c', self.comment])
 
-        cmd.append(self.username)
+        cmd.append(self.name)
         return cmd
